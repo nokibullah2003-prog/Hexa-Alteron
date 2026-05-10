@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2867,7 +2868,9 @@ function onRiverBody(x,y){
 function onBridge(x,y){
   return BRIDGE_ZONES.some(bz=>x>=bz.x&&x<=bz.x+bz.w&&y>=bz.y&&y<=bz.y+bz.h);
 }
-function riverBlocked(x,y){ return onRiverBody(x,y)&&!onBridge(x,y); }
+// Players & enemies can wade across rivers anywhere (slowed in update loop); never hard-blocked.
+function riverBlocked(x,y){ return false; }
+function onRiverWade(x,y){ return onRiverBody(x,y)&&!onBridge(x,y); }
 
 // ============================================================
 // OCEAN SYSTEM — surrounds the playable land
@@ -3267,8 +3270,9 @@ function updatePlayer(){
   }
   // Speed depends on whether player is in boat / swimming / on land
   let moveMul = 1;
-  if(G.inBoat!==null && G.inBoat!==undefined) moveMul = 1.15;       // boat: a bit faster
-  else if(G.swimming) moveMul = 0.45;                                // swimming: slow
+   if(G.inBoat!==null && G.inBoat!==undefined) moveMul = 1.15;       // boat: a bit faster
+   else if(G.swimming) moveMul = 0.45;                                // swimming: slow
+   if(onRiverWade(G.px,G.py)) { moveMul *= 0.55; if(G.frameN%6===0) spark(G.px,G.py,'#44aaff',2); }
 
   G.pvx*=0.8; G.pvy*=0.8;
   const jl=Math.hypot(jx,jy)||1;
