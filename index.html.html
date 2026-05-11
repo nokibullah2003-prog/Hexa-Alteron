@@ -3450,8 +3450,8 @@ function updatePlayer(){
   G.pvx*=0.8; G.pvy*=0.8;
   const jl=Math.hypot(jx,jy)||1;
   if(Math.abs(jx)>2||Math.abs(jy)>2){
-    G.pvx+=jx/jl*3.5*moveMul*Math.min(jl/50,1);
-    G.pvy+=jy/jl*3.5*moveMul*Math.min(jl/50,1);
+    G.pvx+=jx/jl*2.2*moveMul*Math.min(jl/50,1);
+    G.pvy+=jy/jl*2.2*moveMul*Math.min(jl/50,1);
     G.pAngle=Math.atan2(jy,jx);
     if(Math.abs(jy)>=Math.abs(jx)){
       G.pDir=jy<0?'back':'front';
@@ -3590,7 +3590,7 @@ function updateBullets(){
       }
     } else {
       if(dist(b.x,b.y,G.px,G.py)<22){
-        G.hp=Math.max(0,G.hp-b.dmg*0.4); setHP(G.hp);
+        G.hp=Math.max(0,G.hp-b.dmg*0.15); setHP(G.hp);
         spark(b.x,b.y,'#ffaa00',6);
         if(G.hp<=0){endMatch(false);}
         return false;
@@ -7178,7 +7178,7 @@ if (typeof G.lobbySkin        !== 'undefined') G.lobbySkin = equipped;
         var eyeGlow = (tier==='myth') ? 0.7 + Math.sin(t*4)*0.3
                     : (tier==='legend') ? 0.85
                     : 1;
-        var isFemale = sk && sk.name && (sk.name==='SPECIALIST' || sk.name==='CAPTAIN' || sk.name==='VOIDWALKER' || sk.name==='NEBULA');
+        var isFemale = sk && sk.name && !sk._forceMale && (sk.name==='CAPTAIN' || sk.name==='VOIDWALKER');
         if (isSide){
           // single visible eye on side view
           c.fillStyle = 'rgba(255,240,220,'+ (0.95*eyeGlow) +')';
@@ -7413,7 +7413,7 @@ if (typeof G.lobbySkin        !== 'undefined') G.lobbySkin = equipped;
   var WPN_POOL = function(){ return (typeof NEW_WPNS!=='undefined' && NEW_WPNS) ? NEW_WPNS : WPNS; };
   initEnemies = function(){
     G.enemies = [];
-    var count = (G.mode === 'squad') ? 46 : 39;
+    var count = 39;
     var pool = WPN_POOL();
     for(var i=0;i<count;i++){
       var p = PLACES[i % PLACES.length];
@@ -7574,8 +7574,8 @@ if (typeof G.lobbySkin        !== 'undefined') G.lobbySkin = equipped;
     G.pvx *= fric; G.pvy *= fric;
     var jl = Math.hypot(jxv, jyv) || 1;
     if(Math.abs(jxv)>2 || Math.abs(jyv)>2){
-      G.pvx += jxv/jl * 3.5 * moveMul * Math.min(jl/50, 1);
-      G.pvy += jyv/jl * 3.5 * moveMul * Math.min(jl/50, 1);
+      G.pvx += jxv/jl * 2.2 * moveMul * Math.min(jl/50, 1);
+      G.pvy += jyv/jl * 2.2 * moveMul * Math.min(jl/50, 1);
       G.pAngle = Math.atan2(jyv, jxv);
       if(Math.abs(jyv) >= Math.abs(jxv)) G.pDir = jyv<0?'back':'front';
       else G.pDir = jxv<0?'left':'right';
@@ -7842,8 +7842,7 @@ if (typeof G.lobbySkin        !== 'undefined') G.lobbySkin = equipped;
     var bar = document.createElement('div');
     bar.id = 'modeBar';
     bar.style.cssText = 'position:absolute;bottom:96px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:3;';
-    bar.innerHTML =
-      '<button id="mSolo" class="btn" style="width:130px;margin:0;padding:10px;font-size:11px;">👤 SOLO · 40</button>' +
+    bar.innerHTML = '<div style="color:#3aa0ff;font-size:12px;letter-spacing:3px;font-family:Courier New,monospace;">SOLO MODE</div>';margin:0;padding:10px;font-size:11px;">👤 SOLO · 40</button>' +
       '<button id="mSquad" class="btn" style="width:130px;margin:0;padding:10px;font-size:11px;">👥 SQUAD · 50</button>';
     lobby.appendChild(bar);
     function refresh(){
@@ -7863,5 +7862,260 @@ if (typeof G.lobbySkin        !== 'undefined') G.lobbySkin = equipped;
 })();
 </script>
 
+
+<script>
+(function(){
+  function ready(cb){
+    if(typeof G!=='undefined'&&typeof PLACES!=='undefined'&&typeof fireBullet!=='undefined') cb();
+    else setTimeout(function(){ ready(cb); }, 120);
+  }
+  ready(function(){
+
+    // FIX: SPECIALIST and NEBULA are MALE - no ribbon/bow
+    var _prevDCD = window._drawCharDir;
+    window._drawCharDir = function(c, dir, sk, jo, bob){
+      if(sk && (sk.name==='SPECIALIST' || sk.name==='NEBULA')){
+        var patched = Object.assign({}, sk, { _forceMale: true });
+        return _prevDCD(c, dir, patched, jo, bob);
+      }
+      return _prevDCD(c, dir, sk, jo, bob);
+    };
+    try { _drawCharDir = window._drawCharDir; } catch(e){}
+
+    var ROCKET_MAX=480, ROCKET_SPD=5.5;
+    var SHIP_MAX=600, SHIP_SPD=4.2;
+    var ROCKET_ITEMS=[], SHIP_ITEMS=[];
+    var pRocket={active:false,t:0};
+    var pShip={active:false,t:0};
+    var eRockets={}, eShips={};
+    var SHIP_FIRE_CD=0;
+
+    function initVehicles(){
+      ROCKET_ITEMS=[]; SHIP_ITEMS=[];
+      for(var i=0;i<8;i++){
+        var p=PLACES[Math.floor(Math.random()*PLACES.length)];
+        ROCKET_ITEMS.push({x:p.x+(Math.random()-.5)*400,y:p.y+(Math.random()-.5)*400,id:'r'+i});
+      }
+      for(var j=0;j<4;j++){
+        var q=PLACES[Math.floor(Math.random()*PLACES.length)];
+        SHIP_ITEMS.push({x:q.x+(Math.random()-.5)*500,y:q.y+(Math.random()-.5)*500,id:'s'+j});
+      }
+    }
+
+    function drawRocketGround(c,x,y){
+      var bob=Math.sin(Date.now()/400+x)*4;
+      c.save(); c.translate(x,y+bob);
+      c.fillStyle='rgba(255,120,40,0.7)'; c.beginPath(); c.ellipse(0,14,4,7,0,0,Math.PI*2); c.fill();
+      c.fillStyle='#ccddee'; c.beginPath(); c.roundRect(-5,-16,10,28,3); c.fill();
+      c.fillStyle='#ff4444'; c.beginPath(); c.moveTo(0,-22); c.lineTo(-5,-10); c.lineTo(5,-10); c.closePath(); c.fill();
+      c.fillStyle='#aabbcc';
+      c.beginPath(); c.moveTo(-5,10); c.lineTo(-12,18); c.lineTo(-5,18); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(5,10); c.lineTo(12,18); c.lineTo(5,18); c.closePath(); c.fill();
+      c.fillStyle='rgba(100,200,255,0.8)'; c.beginPath(); c.arc(0,-6,3.5,0,Math.PI*2); c.fill();
+      c.fillStyle='#fff'; c.font='7px Courier New'; c.textAlign='center';
+      c.fillText('ROCKET',0,26); c.restore();
+    }
+
+    function drawRocketRider(c,x,y,ang,tLeft,tMax){
+      var fl=10+Math.sin(Date.now()/80)*5;
+      c.save(); c.translate(x,y); c.rotate(ang+Math.PI/2); c.scale(1.1,1.1);
+      c.fillStyle='rgba(255,160,40,0.85)'; c.beginPath(); c.moveTo(-5,12); c.lineTo(0,12+fl); c.lineTo(5,12); c.closePath(); c.fill();
+      c.fillStyle='#ccddee'; c.beginPath(); c.roundRect(-5,-18,10,28,3); c.fill();
+      c.fillStyle='#ff4444'; c.beginPath(); c.moveTo(0,-24); c.lineTo(-5,-12); c.lineTo(5,-12); c.closePath(); c.fill();
+      c.fillStyle='#aabbcc';
+      c.beginPath(); c.moveTo(-5,8); c.lineTo(-10,16); c.lineTo(-5,16); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(5,8); c.lineTo(10,16); c.lineTo(5,16); c.closePath(); c.fill();
+      c.restore();
+      var prog=tLeft/tMax;
+      c.save();
+      c.fillStyle='rgba(0,0,0,0.5)'; c.fillRect(x-18,y-46,36,6);
+      c.fillStyle=prog>0.4?'#ff8800':'#ff2222'; c.fillRect(x-18,y-46,36*prog,6);
+      c.fillStyle='#fff'; c.font='6px Courier New'; c.textAlign='center'; c.fillText('FUEL',x,y-50);
+      c.restore();
+    }
+
+    function drawShipGround(c,x,y){
+      var bob=Math.sin(Date.now()/600+y)*3;
+      c.save(); c.translate(x,y+bob);
+      c.fillStyle='rgba(0,0,0,0.3)'; c.beginPath(); c.ellipse(0,14,32,8,0,0,Math.PI*2); c.fill();
+      var hg=c.createLinearGradient(-30,-10,30,10);
+      hg.addColorStop(0,'#cfd6e0'); hg.addColorStop(0.5,'#8a9aaa'); hg.addColorStop(1,'#4a5a6a');
+      c.fillStyle=hg; c.beginPath(); c.ellipse(0,0,30,12,0,0,Math.PI*2); c.fill();
+      c.fillStyle='rgba(120,220,255,0.85)'; c.beginPath(); c.ellipse(-8,-5,10,7,0,0,Math.PI*2); c.fill();
+      c.fillStyle='#6a7a8a';
+      c.beginPath(); c.moveTo(10,-4); c.lineTo(36,-10); c.lineTo(30,4); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(10,4); c.lineTo(36,10); c.lineTo(30,-4); c.closePath(); c.fill();
+      c.fillStyle='rgba(80,200,255,0.7)'; c.beginPath(); c.arc(26,0,5,0,Math.PI*2); c.fill();
+      c.fillStyle='#fff'; c.font='7px Courier New'; c.textAlign='center';
+      c.fillText('SPACESHIP',0,26); c.restore();
+    }
+
+    function drawFlyingShip(c,x,y,ang,tLeft,tMax,isPlayer){
+      var prog=tLeft/tMax, ef=0.6+Math.sin(Date.now()/60)*0.4;
+      c.save(); c.translate(x,y); c.rotate(ang);
+      c.fillStyle='rgba(80,200,255,'+ef+')'; c.beginPath(); c.ellipse(24,0,8+Math.random()*4,4,0,0,Math.PI*2); c.fill();
+      var hg=c.createLinearGradient(-30,-12,30,12);
+      hg.addColorStop(0,'#d0d8e4'); hg.addColorStop(1,'#5a6878');
+      c.fillStyle=hg; c.beginPath(); c.ellipse(0,0,32,13,0,0,Math.PI*2); c.fill();
+      c.strokeStyle='rgba(0,0,0,0.4)'; c.lineWidth=1.5; c.beginPath(); c.ellipse(0,0,32,13,0,0,Math.PI*2); c.stroke();
+      c.fillStyle='rgba(100,200,255,0.9)'; c.beginPath(); c.ellipse(-8,-5,11,8,0,0,Math.PI*2); c.fill();
+      c.fillStyle='#6a8aaa';
+      c.beginPath(); c.moveTo(8,-4); c.lineTo(34,-12); c.lineTo(28,5); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(8,4); c.lineTo(34,12); c.lineTo(28,-5); c.closePath(); c.fill();
+      c.strokeStyle=isPlayer?'#3aa0ff':'#ff4444'; c.lineWidth=1.5;
+      c.beginPath(); c.moveTo(12,-5); c.lineTo(28,-10); c.stroke();
+      c.beginPath(); c.moveTo(12,5); c.lineTo(28,10); c.stroke();
+      c.restore();
+      c.save();
+      c.fillStyle='rgba(0,0,0,0.5)'; c.fillRect(x-22,y-34,44,6);
+      c.fillStyle=isPlayer?(prog>0.3?'#3aa0ff':'#ff4444'):'#ff6622'; c.fillRect(x-22,y-34,44*prog,6);
+      c.fillStyle='#fff'; c.font='6px Courier New'; c.textAlign='center'; c.fillText('FUEL',x,y-39);
+      c.restore();
+    }
+
+    var _origStart=window.startMatch;
+    window.startMatch=function(){
+      _origStart(); initVehicles();
+      pRocket.active=false;pRocket.t=0;pShip.active=false;pShip.t=0;
+      eRockets={};eShips={};SHIP_FIRE_CD=0;
+    };
+    initVehicles();
+
+    var _origUP=window.updatePlayer;
+    window.updatePlayer=function(){
+      if(pRocket.active){
+        pRocket.t--; if(pRocket.t<=0){pRocket.active=false;G.jumpOff=0;return;}
+        G.pvx*=0.85;G.pvy*=0.85;
+        var jxv=(typeof jx!=='undefined')?jx:0,jyv=(typeof jy!=='undefined')?jy:0,jl=Math.hypot(jxv,jyv)||1;
+        if(Math.abs(jxv)>2||Math.abs(jyv)>2){G.pvx+=jxv/jl*ROCKET_SPD*Math.min(jl/50,1);G.pvy+=jyv/jl*ROCKET_SPD*Math.min(jl/50,1);G.pAngle=Math.atan2(jyv,jxv);}
+        G.px=Math.max(10,Math.min(MAP-10,G.px+G.pvx));G.py=Math.max(10,Math.min(MAP-10,G.py+G.pvy));
+        G.jumpOff=-30;G.camX=G.px;G.camY=G.py;return;
+      }
+      if(pShip.active){
+        pShip.t--; if(pShip.t<=0){pShip.active=false;G.jumpOff=0;return;}
+        G.pvx*=0.82;G.pvy*=0.82;
+        var jxv2=(typeof jx!=='undefined')?jx:0,jyv2=(typeof jy!=='undefined')?jy:0,jl2=Math.hypot(jxv2,jyv2)||1;
+        if(Math.abs(jxv2)>2||Math.abs(jyv2)>2){G.pvx+=jxv2/jl2*SHIP_SPD*Math.min(jl2/50,1);G.pvy+=jyv2/jl2*SHIP_SPD*Math.min(jl2/50,1);G.pAngle=Math.atan2(jyv2,jxv2);}
+        G.px=Math.max(10,Math.min(MAP-10,G.px+G.pvx));G.py=Math.max(10,Math.min(MAP-10,G.py+G.pvy));
+        G.jumpOff=-18;G.camX=G.px;G.camY=G.py;
+        if(SHIP_FIRE_CD>0)SHIP_FIRE_CD--;return;
+      }
+      _origUP();
+    };
+
+    var _origFire=window.doFire;
+    window.doFire=function(){
+      if(pRocket.active)return;
+      if(pShip.active){
+        if(SHIP_FIRE_CD>0)return; SHIP_FIRE_CD=18;
+        var now=Date.now();if(now-G.lastFire<200)return;G.lastFire=now;
+        var best=null,bd=600;
+        G.enemies.forEach(function(e){if(!e.landed||e.hp<=0)return;var d=dist(G.px,G.py,e.x,e.y);if(d<bd){bd=d;best=e;}});
+        if(best)G.pAngle=Math.atan2(best.y-G.py,best.x-G.px);
+        if(typeof fireBullet==='function')fireBullet(G.px,G.py,G.pAngle,true,{name:'SHIP_GUN',dmg:55,range:700,rate:200,ammo:99,max:99});
+        if(typeof spark==='function')spark(G.px+Math.cos(G.pAngle)*30,G.py+Math.sin(G.pAngle)*30,'#3aa0ff',5);
+        return;
+      }
+      _origFire();
+    };
+
+    var _origLoot=window.doLoot;
+    window.doLoot=function(){
+      if(G.pLanding)return;
+      if(!pRocket.active&&!pShip.active){
+        for(var i=0;i<ROCKET_ITEMS.length;i++){
+          if(typeof dist==='function'&&dist(ROCKET_ITEMS[i].x,ROCKET_ITEMS[i].y,G.px,G.py)<55){
+            pRocket.active=true;pRocket.t=ROCKET_MAX;ROCKET_ITEMS.splice(i,1);
+            if(typeof showLootPop==='function')showLootPop('ROCKET ACTIVATED! Limited flight!');
+            if(typeof spark==='function')spark(G.px,G.py,'#ff8822',14);return;
+          }
+        }
+        for(var j=0;j<SHIP_ITEMS.length;j++){
+          if(typeof dist==='function'&&dist(SHIP_ITEMS[j].x,SHIP_ITEMS[j].y,G.px,G.py)<65){
+            pShip.active=true;pShip.t=SHIP_MAX;SHIP_ITEMS.splice(j,1);
+            if(typeof showLootPop==='function')showLootPop('SPACESHIP BOARDED! Fly + fire!');
+            if(typeof spark==='function')spark(G.px,G.py,'#3aa0ff',16);return;
+          }
+        }
+      }
+      _origLoot();
+    };
+
+    var _origUE=window.updateEnemies;
+    window.updateEnemies=function(){
+      _origUE();
+      G.enemies.forEach(function(e){
+        if(e.hp<=0||!e.landed)return;
+        var er=eRockets[e.id],es=eShips[e.id];
+        if(er&&er.active){
+          er.t--;if(er.t<=0){er.active=false;e.jo=0;return;}
+          var dx=G.px-e.x,dy=G.py-e.y,d=Math.hypot(dx,dy)||1;
+          e.vx+=dx/d*ROCKET_SPD*0.35;e.vy+=dy/d*ROCKET_SPD*0.35;
+          var mv=ROCKET_SPD*1.1,sp=Math.hypot(e.vx,e.vy);if(sp>mv){e.vx=e.vx/sp*mv;e.vy=e.vy/sp*mv;}
+          e.x=Math.max(10,Math.min(MAP-10,e.x+e.vx));e.y=Math.max(10,Math.min(MAP-10,e.y+e.vy));e.jo=-28;return;
+        }
+        if(es&&es.active){
+          es.t--;if(es.sFireCd)es.sFireCd--;if(es.t<=0){es.active=false;e.jo=0;return;}
+          var dx2=G.px-e.x,dy2=G.py-e.y,d2=Math.hypot(dx2,dy2)||1;
+          e.vx+=dx2/d2*SHIP_SPD*0.3;e.vy+=dy2/d2*SHIP_SPD*0.3;
+          var mv2=SHIP_SPD*1.1,sp2=Math.hypot(e.vx,e.vy);if(sp2>mv2){e.vx=e.vx/sp2*mv2;e.vy=e.vy/sp2*mv2;}
+          e.x=Math.max(10,Math.min(MAP-10,e.x+e.vx));e.y=Math.max(10,Math.min(MAP-10,e.y+e.vy));e.jo=-16;
+          e.angle=Math.atan2(dy2,dx2);
+          if((!es.sFireCd||es.sFireCd<=0)&&d2<550){
+            if(typeof fireBullet==='function')fireBullet(e.x,e.y,e.angle,false,{name:'SHIP_GUN',dmg:30,range:700,rate:200,ammo:99,max:99});
+            es.sFireCd=22;
+          }
+          return;
+        }
+        var hasTool=(er&&er.active)||(es&&es.active);
+        if(!hasTool){
+          for(var ri=0;ri<ROCKET_ITEMS.length;ri++){if(dist(ROCKET_ITEMS[ri].x,ROCKET_ITEMS[ri].y,e.x,e.y)<50){eRockets[e.id]={active:true,t:ROCKET_MAX};ROCKET_ITEMS.splice(ri,1);break;}}
+          for(var si=0;si<SHIP_ITEMS.length;si++){if(dist(SHIP_ITEMS[si].x,SHIP_ITEMS[si].y,e.x,e.y)<60){eShips[e.id]={active:true,t:SHIP_MAX,sFireCd:0};SHIP_ITEMS.splice(si,1);break;}}
+        }
+      });
+    };
+
+    var _origRender=window.render;
+    window.render=function(){
+      _origRender();
+      var cv=document.getElementById('gc');if(!cv)return;
+      var c=cv.getContext('2d'),W2=cv.width,H2=cv.height;
+      c.save(); c.translate(W2/2-G.camX,H2/2-G.camY);
+      ROCKET_ITEMS.forEach(function(r){drawRocketGround(c,r.x,r.y);});
+      SHIP_ITEMS.forEach(function(s){drawShipGround(c,s.x,s.y);});
+      if(pRocket.active)drawRocketRider(c,G.px,G.py,G.pAngle,pRocket.t,ROCKET_MAX);
+      if(pShip.active)drawFlyingShip(c,G.px,G.py,G.pAngle,pShip.t,SHIP_MAX,true);
+      G.enemies.forEach(function(e){
+        if(e.hp<=0||!e.landed)return;
+        var er=eRockets[e.id],es=eShips[e.id];
+        if(er&&er.active)drawRocketRider(c,e.x,e.y,e.angle,er.t,ROCKET_MAX);
+        else if(es&&es.active)drawFlyingShip(c,e.x,e.y,e.angle,es.t,SHIP_MAX,false);
+      });
+      c.restore();
+    };
+
+    var _origKill=window.killEnemy;
+    window.killEnemy=function(e){
+      _origKill(e);
+      var r=Math.random();
+      if(r<0.25)ROCKET_ITEMS.push({x:e.x+10,y:e.y,id:'r'+Math.random()});
+      else if(r<0.40)SHIP_ITEMS.push({x:e.x,y:e.y+10,id:'s'+Math.random()});
+    };
+
+    (function(){
+      var ctrl=document.getElementById('ctrl');if(!ctrl)return;
+      var btn=document.createElement('div');
+      btn.style.cssText='position:absolute;left:50%;transform:translateX(-50%);bottom:100px;width:72px;height:72px;border-radius:50%;background:rgba(0,0,0,0.7);border:2px solid #ff880088;color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:none;z-index:20;flex-direction:column;gap:2px;';
+      btn.innerHTML='<span style="font-size:20px;">&#128640;</span><span style="font-size:8px;color:#ffaa44;letter-spacing:1px;">BOARD</span>';
+      ctrl.appendChild(btn);
+      function board(){if(window.doLoot)window.doLoot();}
+      btn.addEventListener('touchstart',function(ev){ev.preventDefault();board();},{passive:false});
+      btn.addEventListener('mousedown',board);
+    })();
+
+    console.log('[VEHICLE+GENDER PATCH] Installed!');
+  });
+})();
+</script>
 </body>
 </html>
