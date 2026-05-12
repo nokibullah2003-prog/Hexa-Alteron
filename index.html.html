@@ -487,15 +487,15 @@ droneImg.src='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAMCAggICAg
 
 // ---- SKINS / CLASSES ----
 const SKINS=[
-  {name:'CADET',      c:'#e8ecf2', h:'#9aa3b0', price:0,     cls:'astro_default', astroTier:'default'},
-  {name:'PIONEER',    c:'#bcdcff', h:'#4aa8ff', price:15000, cls:'astro_epic',    astroTier:'epic'},
-  {name:'SPECIALIST', c:'#ffd2a8', h:'#ff8a3a', price:15000, cls:'astro_epic',    astroTier:'epic'},
-  {name:'COMMANDER',  c:'#fff3a8', h:'#ffe24a', price:20000, cls:'astro_legend',  astroTier:'legend'},
-  {name:'CAPTAIN',    c:'#ffd1ec', h:'#ff4dd0', price:20000, cls:'astro_legend',  astroTier:'legend'},
-  {name:'GUARDIAN',   c:'#2a2a2a', h:'#0a0a0a', price:20000, cls:'astro_legend',  astroTier:'legend'},
-  {name:'VOIDWALKER', c:'#1a1f2e', h:'#7a4dff', price:25000, cls:'astro_myth',    astroTier:'myth'},
-  {name:'STARBORN',   c:'#16182a', h:'#3aa0ff', price:25000, cls:'astro_myth',    astroTier:'myth'},
-  {name:'NEBULA',     c:'#2a2410', h:'#ffe24a', price:25000, cls:'astro_myth',    astroTier:'myth'},
+  {name:'DEFAULT',      c:'#e8ecf2', h:'#9aa3b0', price:0,     cls:'astro_default', astroTier:'default'},
+  {name:'TACTICIAN',    c:'#bcdcff', h:'#4aa8ff', price:15000, cls:'astro_epic',    astroTier:'epic'},
+  {name:'QUARTRMSTR', c:'#ffd2a8', h:'#ff8a3a', price:15000, cls:'astro_epic',    astroTier:'epic'},
+  {name:'VANGUARD',  c:'#fff3a8', h:'#ffe24a', price:20000, cls:'astro_legend',  astroTier:'legend'},
+  {name:'INFILTRATR',    c:'#ffd1ec', h:'#ff4dd0', price:20000, cls:'astro_legend',  astroTier:'legend'},
+  {name:'SKIRMISHR',   c:'#2a2a2a', h:'#0a0a0a', price:20000, cls:'astro_legend',  astroTier:'legend'},
+  {name:'RANGER', c:'#1a1f2e', h:'#7a4dff', price:25000, cls:'astro_myth',    astroTier:'myth'},
+  {name:'SUPPORT',   c:'#16182a', h:'#3aa0ff', price:25000, cls:'astro_myth',    astroTier:'myth'},
+  {name:'OPERATIVE',     c:'#2a2410', h:'#ffe24a', price:25000, cls:'astro_myth',    astroTier:'myth'},
 ];
 
 // ---- WEAPONS ----
@@ -7025,16 +7025,16 @@ if (typeof G.lobbySkin        !== 'undefined') G.lobbySkin = equipped;
       // Per-skin overrides (so each costume of the same tier has distinct colour)
       var PN = {
         // 15,000 — blue & orange
-        'PIONEER':    { suit:'#bcdcff', shade:'#5a8fcc', trim:'#1f78ff', visor:'#06122a', visorEdge:'#7ad0ff', glow:'#3aa0ff', accent:'#7ad0ff' },
-        'SPECIALIST': { suit:'#ffd2a8', shade:'#b8753a', trim:'#ff7a1a', visor:'#2a1305', visorEdge:'#ffb070', glow:'#ff8a3a', accent:'#ffb070' },
+        'TACTICIAN':    { suit:'#bcdcff', shade:'#5a8fcc', trim:'#1f78ff', visor:'#06122a', visorEdge:'#7ad0ff', glow:'#3aa0ff', accent:'#7ad0ff' },
+        'QUARTRMSTR': { suit:'#ffd2a8', shade:'#b8753a', trim:'#ff7a1a', visor:'#2a1305', visorEdge:'#ffb070', glow:'#ff8a3a', accent:'#ffb070' },
         // 20,000 — yellow, pink, black
-        'COMMANDER':  { suit:'#fff3a8', shade:'#b89a30', trim:'#ffd000', visor:'#2a2205', visorEdge:'#fff080', glow:'#ffe24a', accent:'#fff080' },
-        'CAPTAIN':    { suit:'#ffd1ec', shade:'#b04088', trim:'#ff2cb8', visor:'#2a0820', visorEdge:'#ffb0e0', glow:'#ff4dd0', accent:'#ffb0e0' },
-        'GUARDIAN':   { suit:'#1f1f22', shade:'#070708', trim:'#3a3a40', visor:'#000000', visorEdge:'#5a5a60', glow:'#888888', accent:'#aaaaaa' },
+        'VANGUARD':  { suit:'#fff3a8', shade:'#b89a30', trim:'#ffd000', visor:'#2a2205', visorEdge:'#fff080', glow:'#ffe24a', accent:'#fff080' },
+        'INFILTRATR':    { suit:'#ffd1ec', shade:'#b04088', trim:'#ff2cb8', visor:'#2a0820', visorEdge:'#ffb0e0', glow:'#ff4dd0', accent:'#ffb0e0' },
+        'SKIRMISHR':   { suit:'#1f1f22', shade:'#070708', trim:'#3a3a40', visor:'#000000', visorEdge:'#5a5a60', glow:'#888888', accent:'#aaaaaa' },
         // 25,000 — purple (existing), blue, yellow
-        'VOIDWALKER': { suit:'#1a1f2e', shade:'#0a0d18', trim:'#a070ff', visor:'#020616', visorEdge:'#d8b0ff', glow:'#a070ff', accent:'#c89aff' },
-        'STARBORN':   { suit:'#16182a', shade:'#070914', trim:'#3aa0ff', visor:'#02061a', visorEdge:'#7ad0ff', glow:'#3aa0ff', accent:'#7ad0ff' },
-        'NEBULA':     { suit:'#2a2410', shade:'#0e0c04', trim:'#ffe24a', visor:'#1a1404', visorEdge:'#fff080', glow:'#ffe24a', accent:'#fff080' }
+        'RANGER': { suit:'#1a1f2e', shade:'#0a0d18', trim:'#a070ff', visor:'#020616', visorEdge:'#d8b0ff', glow:'#a070ff', accent:'#c89aff' },
+        'SUPPORT':   { suit:'#16182a', shade:'#070914', trim:'#3aa0ff', visor:'#02061a', visorEdge:'#7ad0ff', glow:'#3aa0ff', accent:'#7ad0ff' },
+        'OPERATIVE':     { suit:'#2a2410', shade:'#0e0c04', trim:'#ffe24a', visor:'#1a1404', visorEdge:'#fff080', glow:'#ffe24a', accent:'#fff080' }
       };
       var pal = (sk && sk.name && PN[sk.name]) ? PN[sk.name] : (P[tier] || P['default']);
 
@@ -7178,7 +7178,7 @@ if (typeof G.lobbySkin        !== 'undefined') G.lobbySkin = equipped;
         var eyeGlow = (tier==='myth') ? 0.7 + Math.sin(t*4)*0.3
                     : (tier==='legend') ? 0.85
                     : 1;
-        var isFemale = sk && sk.name && !sk._forceMale && (sk.name==='CAPTAIN' || sk.name==='VOIDWALKER');
+        var isFemale = sk && sk.name && !sk._forceMale && (sk.name==='INFILTRATR' || sk.name==='RANGER');
         if (isSide){
           // single visible eye on side view
           c.fillStyle = 'rgba(255,240,220,'+ (0.95*eyeGlow) +')';
@@ -7871,10 +7871,10 @@ if (typeof G.lobbySkin        !== 'undefined') G.lobbySkin = equipped;
   }
   ready(function(){
 
-    // FIX: SPECIALIST and NEBULA are MALE - no ribbon/bow
+    // FIX: QUARTRMSTR and OPERATIVE are MALE - no ribbon/bow
     var _prevDCD = window._drawCharDir;
     window._drawCharDir = function(c, dir, sk, jo, bob){
-      if(sk && (sk.name==='SPECIALIST' || sk.name==='NEBULA')){
+      if(sk && (sk.name==='QUARTRMSTR' || sk.name==='OPERATIVE')){
         var patched = Object.assign({}, sk, { _forceMale: true });
         return _prevDCD(c, dir, patched, jo, bob);
       }
