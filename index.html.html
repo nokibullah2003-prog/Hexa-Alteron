@@ -487,15 +487,15 @@ droneImg.src='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAMCAggICAg
 
 // ---- SKINS / CLASSES ----
 const SKINS=[
-  {name:'DEFAULT',      c:'#e8ecf2', h:'#9aa3b0', price:0,     cls:'astro_default', astroTier:'default'},
-  {name:'TACTICIAN',    c:'#bcdcff', h:'#4aa8ff', price:15000, cls:'astro_epic',    astroTier:'epic'},
-  {name:'QUARTRMSTR', c:'#ffd2a8', h:'#ff8a3a', price:15000, cls:'astro_epic',    astroTier:'epic'},
-  {name:'VANGUARD',  c:'#fff3a8', h:'#ffe24a', price:20000, cls:'astro_legend',  astroTier:'legend'},
-  {name:'INFILTRATR',    c:'#ffd1ec', h:'#ff4dd0', price:20000, cls:'astro_legend',  astroTier:'legend'},
-  {name:'SKIRMISHR',   c:'#2a2a2a', h:'#0a0a0a', price:20000, cls:'astro_legend',  astroTier:'legend'},
-  {name:'RANGER', c:'#1a1f2e', h:'#7a4dff', price:25000, cls:'astro_myth',    astroTier:'myth'},
-  {name:'SUPPORT',   c:'#16182a', h:'#3aa0ff', price:25000, cls:'astro_myth',    astroTier:'myth'},
-  {name:'OPERATIVE',     c:'#2a2410', h:'#ffe24a', price:25000, cls:'astro_myth',    astroTier:'myth'},
+  {name:'CADET',      c:'#e8ecf2', h:'#9aa3b0', price:0,     cls:'astro_default', astroTier:'default'},
+  {name:'PIONEER',    c:'#bcdcff', h:'#4aa8ff', price:15000, cls:'astro_epic',    astroTier:'epic'},
+  {name:'SPECIALIST', c:'#ffd2a8', h:'#ff8a3a', price:15000, cls:'astro_epic',    astroTier:'epic'},
+  {name:'COMMANDER',  c:'#fff3a8', h:'#ffe24a', price:20000, cls:'astro_legend',  astroTier:'legend'},
+  {name:'CAPTAIN',    c:'#ffd1ec', h:'#ff4dd0', price:20000, cls:'astro_legend',  astroTier:'legend'},
+  {name:'GUARDIAN',   c:'#2a2a2a', h:'#0a0a0a', price:20000, cls:'astro_legend',  astroTier:'legend'},
+  {name:'VOIDWALKER', c:'#1a1f2e', h:'#7a4dff', price:25000, cls:'astro_myth',    astroTier:'myth'},
+  {name:'STARBORN',   c:'#16182a', h:'#3aa0ff', price:25000, cls:'astro_myth',    astroTier:'myth'},
+  {name:'NEBULA',     c:'#2a2410', h:'#ffe24a', price:25000, cls:'astro_myth',    astroTier:'myth'},
 ];
 
 // ---- WEAPONS ----
@@ -2876,7 +2876,7 @@ function drawMap(){
 
     // Spaceship — tilted, half-buried
     cx.translate(sx-10,sy-6);
-    cx.rotate(0.35);
+    cx.rotate(-0.55);
     // hull shadow
     cx.fillStyle='rgba(0,0,0,0.55)';
     cx.beginPath(); cx.ellipse(6,18,108,28,0,0,Math.PI*2); cx.fill();
@@ -3429,9 +3429,6 @@ function update(){
 }
 
 function updatePlayer(){
-  // Safety: prevent NaN from freezing movement
-  if(isNaN(G.pvx)||!isFinite(G.pvx)) G.pvx=0;
-  if(isNaN(G.pvy)||!isFinite(G.pvy)) G.pvy=0;
   // ---- PARACHUTE LANDING PHASE ----
   if(G.pLanding){
     G.pLandT++;
@@ -3828,7 +3825,6 @@ function jEnd(){jActive=false;jx=0;jy=0;jKnob.style.transform='translate(-50%,-5
 jZone.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];jActive=true;jOx=t.clientX;jOy=t.clientY;},{passive:false});
 jZone.addEventListener('touchmove',e=>{e.preventDefault();if(jActive)jMove(e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
 jZone.addEventListener('touchend',jEnd);
-jZone.addEventListener('touchcancel',jEnd);
 jZone.addEventListener('mousedown',e=>{jActive=true;jOx=e.clientX;jOy=e.clientY;
   const mm=ev=>jMove(ev.clientX,ev.clientY);
   const mu=()=>{jEnd();window.removeEventListener('mousemove',mm);window.removeEventListener('mouseup',mu);};
@@ -4086,7 +4082,7 @@ for(let wi=0;wi<4;wi++){
 let fireHeld=false,fireIv=null;
 const fbEl=document.getElementById('btnFire');
 function startFire(){fireHeld=true;doFire();fireIv=setInterval(()=>{if(fireHeld)doFire();},80);}
-function stopFire(){fireHeld=false;clearInterval(fireIv);fireIv=null;}
+function stopFire(){fireHeld=false;clearInterval(fireIv);}
 fbEl.addEventListener('touchstart',e=>{e.preventDefault();startFire();},{passive:false});
 fbEl.addEventListener('touchend',stopFire);
 fbEl.addEventListener('touchcancel',stopFire);
@@ -7541,13 +7537,13 @@ if (typeof G.lobbySkin        !== 'undefined') G.lobbySkin = equipped;
     // Only act after the player has been wedged for a full second AND
     // we haven't nudged recently (prevents flicker / repeated teleports).
     var now = Date.now();
-    if(stuck.n > 90 && (now - stuck.lastNudge) > 2500){
+    if(stuck.n > 60 && (now - stuck.lastNudge) > 1500){
       var ang = Math.atan2(jyv, jxv);
       // Try perpendicular slide (left then right) to ease around the obstacle —
       // small, single-frame velocity push, never a position teleport.
       var perp = Math.random() < 0.5 ? ang + Math.PI/2 : ang - Math.PI/2;
-      G.pvx += Math.cos(perp) * 1.2 + Math.cos(ang) * 0.6;
-      G.pvy += Math.sin(perp) * 1.2 + Math.sin(ang) * 0.6;
+      G.pvx += Math.cos(perp) * 2.5 + Math.cos(ang) * 1.2;
+      G.pvy += Math.sin(perp) * 2.5 + Math.sin(ang) * 1.2;
       stuck.lastNudge = now;
       stuck.n = 0;
     }
@@ -7567,8 +7563,6 @@ if (typeof G.lobbySkin        !== 'undefined') G.lobbySkin = equipped;
   var origUpdatePlayer = updatePlayer;
   updatePlayer = function(){
     if(G.pLanding){ origUpdatePlayer(); return; }
-    if(isNaN(G.pvx)||!isFinite(G.pvx)) G.pvx=0;
-    if(isNaN(G.pvy)||!isFinite(G.pvy)) G.pvy=0;
     var bio = getBiome(G.px, G.py);
     if(!bio){ origUpdatePlayer(); return; }
     // ----- BIOME PHYSICS -----
